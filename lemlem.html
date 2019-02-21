@@ -16,9 +16,9 @@ var myGamePiece;
 var myBackground;
 
 function startGame() {
-  //myBackground = new component(600, 200, "assets/background.jpg", 0, 0, "image");
-  myGamePiece = new component(41, 28, "assets/lemmy.gif", 50, 120, "image");
   myGameArea.start();
+  myBackground = new component(600, 200, "assets/background.jpg", 0, 0, "image");
+  myGamePiece = new component(41, 28, "assets/Lemmy.gif", 50, 120, "image");
 }
 
 var myGameArea = {
@@ -91,7 +91,7 @@ function component(width, height, color, x, y, type) {
 
 function updateGameArea() {
   myGameArea.clear();
-  //myBackground.update();
+  myBackground.update();
   if (myGameArea.key && myGameArea.key == 32 && myGamePiece.isOnGround()) {
     myGamePiece.speedY = -6; //acceleration
   }
