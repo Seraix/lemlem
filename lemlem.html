@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+canvas {
+  border:0px solid #d3d3d3;
+  background-color: #FAFAFA;
+}
+</style>
+</head>
+<body onload="startGame()">
+<script>
+
+var myGamePiece;
+var myBackground;
+
+function startGame() {
+  //myBackground = new component(600, 200, "assets/background.jpg", 0, 0, "image");
+  myGamePiece = new component(41, 28, "assets/lemmy.gif", 50, 120, "image");
+  myGameArea.start();
+}
+
+var myGameArea = {
+  canvas : document.createElement("canvas"),
+  start : function() {
+    this.canvas.width = 600;
+    this.canvas.height = 200;
+    this.context = this.canvas.getContext("2d");
+    document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+    this.ground = this.canvas.height - 50;
+    this.frameRate = 1000 / 30;
+    this.interval = setInterval(updateGameArea, this.frameRate);
+    window.addEventListener('keydown', function (e) {
+      console.log('down ' + e.keyCode);
+      myGameArea.key = e.keyCode;
+    })
+    window.addEventListener('keyup', function (e) {
+      console.log('up ' + e.keyCode);
+      myGameArea.key = false;
+    })
+  },
+  clear : function(){
+    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+}
+
+function component(width, height, color, x, y, type) {
+  this.type = type;
+  if (type == "image") {
+    this.image = new Image();
+    this.image.src = color;
+  }
+  this.gamearea = myGameArea;
+  this.width = width;
+  this.height = height;
+  this.speedX = 0;
+  this.speedY = 0;
+  this.gravity = 9.8 / myGameArea.frameRate; //gravity physics
+  this.gravitySpeed = 0;
+  this.x = x;
+  this.y = y;
+  this.update = function() {
+    ctx = myGameArea.context;
+    if (type == "image") {
+      ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+    } else {
+      ctx.fillStyle = color;
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+  }
+  this.newPos = function() {
+    this.gravitySpeed += this.gravity;
+    this.x += this.speedX;
+    this.y += this.speedY + this.gravitySpeed;
+    this.hitGround();
+  }
+
+  this.hitGround = function(){
+    if (this.isOnGround()) {
+      this.y = myGameArea.ground;
+      this.speedY = 0;
+      this.gravitySpeed = 0;
+    }
+  }
+
+  this.isOnGround = function(){
+    return this.y >= myGameArea.ground;
+  }
+}
+
+function updateGameArea() {
+  myGameArea.clear();
+  //myBackground.update();
+  if (myGameArea.key && myGameArea.key == 32 && myGamePiece.isOnGround()) {
+    myGamePiece.speedY = -6; //acceleration
+  }
+  myGamePiece.newPos();
+  myGamePiece.update();
+  console.log(myGamePiece.y + " yo");
+
+}
+</script>
+</body>
+</html>
