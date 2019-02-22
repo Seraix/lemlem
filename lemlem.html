@@ -17,14 +17,14 @@ var myBackground;
 
 function startGame() {
   myGameArea.start();
-  myBackground = new component(600, 200, "assets/background.jpg", 0, 0, "image");
+  myBackground = new component(768, 200, "assets/background.png", 0, 0, "image");
   myGamePiece = new component(41, 28, "assets/Lemmy.gif", 50, 120, "image");
 }
 
 var myGameArea = {
   canvas : document.createElement("canvas"),
   start : function() {
-    this.canvas.width = 600;
+    this.canvas.width = 564;
     this.canvas.height = 200;
     this.context = this.canvas.getContext("2d");
     document.body.insertBefore(this.canvas, document.body.childNodes[0]);
@@ -92,6 +92,10 @@ function component(width, height, color, x, y, type) {
 function updateGameArea() {
   myGameArea.clear();
   myBackground.update();
+  myBackground.x = myBackground.x - 4;
+  if (myBackground.x < -192){
+    myBackground.x = 0;
+  }
   if (myGameArea.key && myGameArea.key == 32 && myGamePiece.isOnGround()) {
     myGamePiece.speedY = -6; //acceleration
   }
