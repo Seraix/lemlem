@@ -14,11 +14,11 @@ canvas {
 
 var myGamePiece;
 var backgroundCity;
-//var backgroundClouds;
+var backgroundClouds;
 
 function startGame() {
   myGameArea.start();
-  //backgroundClouds = new component (768, 200, "assets/clouds.png", 0, 0, "image");
+  backgroundClouds = new component (785, 200, "assets/clouds-V02.png", 0, 0, "image");
   backgroundCity = new component(768, 200, "assets/background.png", 0, 0, "image");
   myGamePiece = new component(41, 28, "assets/Lemmy.gif", 50, 120, "image");
 }
@@ -96,20 +96,18 @@ function updateGameArea() {
 
   //Controlling background layers
 
+  backgroundClouds.update();
+  backgroundClouds.x = backgroundClouds.x - 3; //speed of Clouds scrolling
+  if (backgroundClouds.x < -197){
+    backgroundClouds.x = 0;
+  }
+
+
   backgroundCity.update();
-  backgroundCity.x = backgroundCity.x - 4; //speed of City scrolling
+  backgroundCity.x = backgroundCity.x - 6; //speed of City scrolling
   if (backgroundCity.x < -192){
     backgroundCity.x = 0;
   }
-
-  /*
-
-  backgroundClouds.update();
-  backgroundClouds.x = backgroundClouds.x - 1; //speed of Clouds scrolling
-  if (backgroundClouds.x < -192){
-    backgroundClouds.x = 0;
-  }
-*/
 
   //Player
 
