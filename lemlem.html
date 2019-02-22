@@ -13,11 +13,13 @@ canvas {
 <script>
 
 var myGamePiece;
-var myBackground;
+var backgroundCity;
+//var backgroundClouds;
 
 function startGame() {
   myGameArea.start();
-  myBackground = new component(768, 200, "assets/background.png", 0, 0, "image");
+  //backgroundClouds = new component (768, 200, "assets/clouds.png", 0, 0, "image");
+  backgroundCity = new component(768, 200, "assets/background.png", 0, 0, "image");
   myGamePiece = new component(41, 28, "assets/Lemmy.gif", 50, 120, "image");
 }
 
@@ -28,7 +30,7 @@ var myGameArea = {
     this.canvas.height = 200;
     this.context = this.canvas.getContext("2d");
     document.body.insertBefore(this.canvas, document.body.childNodes[0]);
-    this.ground = this.canvas.height - 50;
+    this.ground = this.canvas.height - 50; //setting the ground height for hitGround
     this.frameRate = 1000 / 30;
     this.interval = setInterval(updateGameArea, this.frameRate);
     window.addEventListener('keydown', function (e) {
@@ -91,13 +93,28 @@ function component(width, height, color, x, y, type) {
 
 function updateGameArea() {
   myGameArea.clear();
-  myBackground.update();
-  myBackground.x = myBackground.x - 4;
-  if (myBackground.x < -192){
-    myBackground.x = 0;
+
+  //Controlling background layers
+
+  backgroundCity.update();
+  backgroundCity.x = backgroundCity.x - 4; //speed of City scrolling
+  if (backgroundCity.x < -192){
+    backgroundCity.x = 0;
   }
+
+  /*
+
+  backgroundClouds.update();
+  backgroundClouds.x = backgroundClouds.x - 1; //speed of Clouds scrolling
+  if (backgroundClouds.x < -192){
+    backgroundClouds.x = 0;
+  }
+*/
+
+  //Player
+
   if (myGameArea.key && myGameArea.key == 32 && myGamePiece.isOnGround()) {
-    myGamePiece.speedY = -6; //acceleration
+    myGamePiece.speedY = -6; //gravity acceleration
   }
   myGamePiece.newPos();
   myGamePiece.update();
