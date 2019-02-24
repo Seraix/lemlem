@@ -1,124 +1,104 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<style>
-canvas {
-  border:0px solid #d3d3d3;
-  background-color: #FAFAFA;
-}
-</style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.16.2/phaser-arcade-physics.min.js"></script>
 </head>
-<body onload="startGame()">
-<script>
 
-var myGamePiece;
-var backgroundCity;
-var backgroundClouds;
+<body>
 
-function startGame() {
-  myGameArea.start();
-  backgroundClouds = new component (785, 200, "assets/clouds-V02.png", 0, 0, "image");
-  backgroundCity = new component(768, 200, "assets/background.png", 0, 0, "image");
-  myGamePiece = new component(41, 28, "assets/Lemmy.gif", 50, 120, "image");
-}
+  <script>
+    var config = {
+      type: Phaser.AUTO,
+      width: 800,
+      height: 200,
+      physics: {
+        default: 'arcade',
+        arcade: {
+          gravity: {
+            y: 300
+          },
+          debug: false
+        }
+      },
+      scene: {
+        preload: preload,
+        create: create,
+        update: update
+      }
+    };
 
-var myGameArea = {
-  canvas : document.createElement("canvas"),
-  start : function() {
-    this.canvas.width = 564;
-    this.canvas.height = 200;
-    this.context = this.canvas.getContext("2d");
-    document.body.insertBefore(this.canvas, document.body.childNodes[0]);
-    this.ground = this.canvas.height - 50; //setting the ground height for hitGround
-    this.frameRate = 1000 / 30;
-    this.interval = setInterval(updateGameArea, this.frameRate);
-    window.addEventListener('keydown', function (e) {
-      console.log('down ' + e.keyCode);
-      myGameArea.key = e.keyCode;
-    })
-    window.addEventListener('keyup', function (e) {
-      console.log('up ' + e.keyCode);
-      myGameArea.key = false;
-    })
-  },
-  clear : function(){
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-  }
-}
+    var game = new Phaser.Game(config);
 
-function component(width, height, color, x, y, type) {
-  this.type = type;
-  if (type == "image") {
-    this.image = new Image();
-    this.image.src = color;
-  }
-  this.gamearea = myGameArea;
-  this.width = width;
-  this.height = height;
-  this.speedX = 0;
-  this.speedY = 0;
-  this.gravity = 9.8 / myGameArea.frameRate; //gravity physics
-  this.gravitySpeed = 0;
-  this.x = x;
-  this.y = y;
-  this.update = function() {
-    ctx = myGameArea.context;
-    if (type == "image") {
-      ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
-    } else {
-      ctx.fillStyle = color;
-      ctx.fillRect(this.x, this.y, this.width, this.height);
+    var ground;
+    var obstacles;
+    var player;
+
+
+    function preload() {
+      this.load.image('clouds', 'assets/clouds-v02.png');
+      this.load.image('city', 'assets/city.png');
+      this.load.image('ground', 'assets/ground.png');
+      this.load.image('obstacle', 'assets/obstacle.png');
+      this.load.spritesheet('lemmy', 'assets/lemmy-spritesheet.png', {
+        frameWidth: 40,
+        frameHeight: 26
+      });
     }
-  }
-  this.newPos = function() {
-    this.gravitySpeed += this.gravity;
-    this.x += this.speedX;
-    this.y += this.speedY + this.gravitySpeed;
-    this.hitGround();
-  }
 
-  this.hitGround = function(){
-    if (this.isOnGround()) {
-      this.y = myGameArea.ground;
-      this.speedY = 0;
-      this.gravitySpeed = 0;
+    function create() {
+      this.add.image(0, 0, 'clouds').setOrigin(0, 0);
+      this.add.image(0, 0, 'city').setOrigin(0, 0);
+
+      ground = this.physics.add.staticGroup();
+      ground.create(0, 165, 'ground').setOrigin(0, 0).refreshBody();
+
+      obstacles = this.physics.add.staticGroup();
+      obstacles.create(150, 157, 'obstacle');
+      obstacles.create(300, 157, 'obstacle');
+
+      player = this.physics.add.sprite(50, 150, 'lemmy');
+
+      player.setBounce(0.2);
+      player.setCollideWorldBounds(true);
+
+      this.physics.add.collider(player, ground);
+      this.physics.add.collider(player, obstacles);
+
+      this.anims.create({
+        key: 'idle',
+        frames: this.anims.generateFrameNumbers('lemmy', {
+          start: 0,
+          end: 1
+        }),
+        frameRate: 10,
+        repeat: -1
+      });
+
+      cursors = this.input.keyboard.createCursorKeys();
+
     }
-  }
 
-  this.isOnGround = function(){
-    return this.y >= myGameArea.ground;
-  }
-}
+    function update() {
+      if (cursors.left.isDown) {
+        player.setVelocityX(-160);
 
-function updateGameArea() {
-  myGameArea.clear();
+        player.anims.play('idle', true);
+      } else if (cursors.right.isDown) {
+        player.setVelocityX(160);
+        player.anims.play('idle', true);
+      } else {
+        player.setVelocityX(0);
+        player.anims.play('idle');
+      }
 
-  //Controlling background layers
+      if (cursors.up.isDown && player.body.touching.down) {
+        player.setVelocityY(-330);
+      }
 
-  backgroundClouds.update();
-  backgroundClouds.x = backgroundClouds.x - 3; //speed of Clouds scrolling
-  if (backgroundClouds.x < -197){
-    backgroundClouds.x = 0;
-  }
+    }
+  </script>
 
-
-  backgroundCity.update();
-  backgroundCity.x = backgroundCity.x - 6; //speed of City scrolling
-  if (backgroundCity.x < -192){
-    backgroundCity.x = 0;
-  }
-
-  //Player
-
-  if (myGameArea.key && myGameArea.key == 32 && myGamePiece.isOnGround()) {
-    myGamePiece.speedY = -6; //gravity acceleration
-  }
-  myGamePiece.newPos();
-  myGamePiece.update();
-  console.log(myGamePiece.y + " yo");
-
-}
-</script>
 </body>
+
 </html>
