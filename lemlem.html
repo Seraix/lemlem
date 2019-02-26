@@ -12,13 +12,14 @@
       type: Phaser.AUTO,
       width: 800,
       height: 200,
+      backgroundColor: '#F8F8F8',
       physics: {
         default: 'arcade',
         arcade: {
           gravity: {
             y: 300
           },
-          debug: false
+          // debug: true
         }
       },
       scene: {
@@ -30,15 +31,18 @@
 
     var game = new Phaser.Game(config);
 
-    var ground;
+    var road;
+    var background;
     var obstacles;
     var player;
 
+    var distanceRan = 0;
+    var distanceMeter;
+
 
     function preload() {
-      this.load.image('clouds', 'assets/clouds-v02.png');
       this.load.image('city', 'assets/city.png');
-      this.load.image('ground', 'assets/ground.png');
+      this.load.image('road', 'assets/ground.png');
       this.load.image('obstacle', 'assets/obstacle.png');
       this.load.spritesheet('lemmy', 'assets/lemmy-spritesheet.png', {
         frameWidth: 40,
@@ -47,23 +51,71 @@
     }
 
     function create() {
-      this.add.image(0, 0, 'clouds').setOrigin(0, 0);
-      this.add.image(0, 0, 'city').setOrigin(0, 0);
 
-      ground = this.physics.add.staticGroup();
-      ground.create(0, 165, 'ground').setOrigin(0, 0).refreshBody();
+      //Background
+      this.background = this.add.tileSprite(0, 0, 800, 200, 'city').setOrigin(0);
 
-      obstacles = this.physics.add.staticGroup();
-      obstacles.create(150, 157, 'obstacle');
-      obstacles.create(300, 157, 'obstacle');
+      //Road
+      road = this.physics.add.staticGroup();
+      road.create(0, 165, 'road').setOrigin(0).refreshBody();
 
-      player = this.physics.add.sprite(50, 150, 'lemmy');
+      //Score
+      distanceMeter = this.add.text(16, 16, '0', {
+        fontSize: '16px',
+        fill: '#000'
+      });
 
+      //Obstacle
+      var Obstacle = new Phaser.Class({
+
+        Extends: Phaser.GameObjects.Image,
+
+        initialize: function Obstacle(scene) {
+          Phaser.GameObjects.Image.call(this, scene, 0, 0, 'obstacle');
+          this.speed = Phaser.Math.GetSpeed(400, 1);
+        },
+
+        generateObstacle: function() {
+          this.setPosition(800, 157);
+
+          this.setActive(true);
+          this.setVisible(true);
+
+        },
+
+        update: function(time, delta) {
+          this.x -= this.speed * delta;
+
+          if (this.x < 0) {
+            this.setActive(false);
+            this.setVisible(false);
+          }
+        }
+
+      });
+
+      obstacles = this.physics.add.group({
+        classType: Obstacle,
+        maxSize: 10,
+        runChildUpdate: true
+      });
+
+      obstacles.children.iterate(function(child) {
+        game.physics.enable(obstacle, Phaser.Physics.ARCADE);
+      })
+
+
+      //Player
+      player = this.physics.add.sprite(100, 150, 'lemmy');
       player.setBounce(0.2);
       player.setCollideWorldBounds(true);
 
-      this.physics.add.collider(player, ground);
-      this.physics.add.collider(player, obstacles);
+      //Collision
+      this.physics.add.collider(player, road, land);
+      this.physics.add.collider(road, obstacles);
+      this.physics.add.collider(player, obstacles, hitObstacle);
+
+      // obstacles.setBounce(1);
 
       this.anims.create({
         key: 'idle',
@@ -79,21 +131,44 @@
 
     }
 
-    function update() {
-      if (cursors.left.isDown) {
-        player.setVelocityX(-160);
+    function hitObstacle() {
+      console.log('poop');
+      //player.kill();
+    }
 
-        player.anims.play('idle', true);
-      } else if (cursors.right.isDown) {
-        player.setVelocityX(160);
-        player.anims.play('idle', true);
-      } else {
-        player.setVelocityX(0);
-        player.anims.play('idle');
+    function land() {
+      player.rotation = 0;
+    }
+
+    function shouldAddObstacle(x) {
+      var distances = [300, 400, 600];
+      var rand = distances[Math.floor(Math.random() * distances.length)];
+      return x % rand == 0;
+    }
+
+    //GAMELOOP
+    function update() {
+      this.background.tilePositionX += 5;
+
+      if (shouldAddObstacle(this.background.tilePositionX)) {
+        var newObstacle = obstacles.get();
+
+        if (newObstacle) {
+          // this.physics.add.collider(newObstacle, player);
+
+          newObstacle.generateObstacle();
+          // newObstacle.setBounce(0.2);
+          // this.physics.add.collider(player, newObstacle);
+
+        }
       }
 
-      if (cursors.up.isDown && player.body.touching.down) {
-        player.setVelocityY(-330);
+      if (cursors.space.isDown && player.body.touching.down) {
+        player.setVelocityY(-150);
+        player.setAngularVelocity(-10);
+      } else {
+        player.setVelocityX(0);
+        player.anims.play('idle', true);
       }
 
     }
