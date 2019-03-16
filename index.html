@@ -2,12 +2,20 @@
 <html>
 
 <head>
+  <title>LemLem's Big Adventure</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.16.2/phaser-arcade-physics.min.js"></script>
+
+  <script src="scripts/GlobalVariables.js"></script>
+  <script src="scripts/Preload.js"></script>
+  <script src="scripts/MainMenu.js"></script>
+  <script src="scripts/Gameplay.js"></script>
+
 </head>
 
 <body>
 
   <script>
+    //Create game config
     var config = {
       type: Phaser.AUTO,
       width: 800,
@@ -28,7 +36,7 @@
         update: update
       }
     };
-
+    //Instantiate game
     var game = new Phaser.Game(config);
 
     var road;
@@ -36,7 +44,9 @@
     var obstacles;
     var player;
 
-    var distanceRan = 0;
+    var distanceRode = 0;
+    var distance;
+    var actualDistance;
     var distanceMeter;
 
 
@@ -60,7 +70,7 @@
       road.create(0, 165, 'road').setOrigin(0).refreshBody();
 
       //Score
-      distanceMeter = this.add.text(16, 16, '0', {
+      distanceMeter = this.add.text(16, 16, '0.0', {
         fontSize: '16px',
         fill: '#000'
       });
@@ -113,7 +123,7 @@
       //Collision
       this.physics.add.collider(player, road, land);
       this.physics.add.collider(road, obstacles);
-      this.physics.add.collider(player, obstacles, hitObstacle);
+      this.physics.add.collider(player, obstacles, hitObstacle.bind(this));
 
       // obstacles.setBounce(1);
 
@@ -132,23 +142,48 @@
     }
 
     function hitObstacle() {
-      console.log('poop');
-      //player.kill();
+      // console.log(this);
+
+      // this.scene.pause();
+      crash();
+      return true;
     }
 
     function land() {
-      player.rotation = 0;
+      player.setAngularVelocity(0);
+      //
+      player.rotation = player.rotation * 0.50;
+      if (player.rotation < 0.1) {
+
+      }
+      //player.setAngularAcceleration(800);
+
+
     }
 
     function shouldAddObstacle(x) {
-      var distances = [300, 400, 600];
+      // var distances = [300, 400, 600];
+      var distances = [600, 800, 1000];
       var rand = distances[Math.floor(Math.random() * distances.length)];
       return x % rand == 0;
     }
 
+    function crash() {
+      player.setVelocityY(-150);
+      player.setAngularVelocity(800);
+      //player.setAngularAcceleration(-800);
+
+
+
+    }
+
     //GAMELOOP
     function update() {
+      window.scene = this.scene;
       this.background.tilePositionX += 5;
+      distanceRode = this.background.tilePositionX * 0.0025;
+      distanceMeter.setText(distanceRode.toFixed(1) + ' miles');
+
 
       if (shouldAddObstacle(this.background.tilePositionX)) {
         var newObstacle = obstacles.get();
@@ -165,12 +200,11 @@
 
       if (cursors.space.isDown && player.body.touching.down) {
         player.setVelocityY(-150);
-        player.setAngularVelocity(-10);
+        //player.setAngularVelocity(-10);
       } else {
         player.setVelocityX(0);
         player.anims.play('idle', true);
       }
-
     }
   </script>
 
